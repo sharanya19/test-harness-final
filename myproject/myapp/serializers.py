@@ -2,15 +2,19 @@
 from rest_framework import serializers
 from .models import Order, Specimen, Submitter, Patient
 
-class OrderSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Order
-        fields = '__all__'
-
 class SpecimenSerializer(serializers.ModelSerializer):
     class Meta:
         model = Specimen
         fields = '__all__'
+
+class OrderSerializer(serializers.ModelSerializer):
+    specimens = SpecimenSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Order
+        fields = '__all__'
+
+
 
 class SubmitterSerializer(serializers.ModelSerializer):
     class Meta:

@@ -7,7 +7,7 @@ const DynamicForm: React.FC = () => {
   const {
     orders,
     selectedOrder,
-    selectedOrderSpecimen,
+    selectedOrderValue,
     drawerOpen,
     dropdownData,
     textFields,
@@ -43,25 +43,25 @@ const DynamicForm: React.FC = () => {
           <Box mt={2}>
             <FormInput
               label="Order Name"
-              value={orders.find(order => order.order_code === selectedOrder)?.order_name || ''}
+              value={selectedOrderValue?.order_name || ''}
               onChange={() => { }} // Read-only, so no change handler needed
               readOnly
             />
             <FormInput
               label="Order LOINC Code"
-              value={orders.find(order => order.order_code === selectedOrder)?.order_loinc_code || ''}
+              value={selectedOrderValue?.order_loinc_code || ''}
               onChange={() => { }} // Read-only, so no change handler needed
               readOnly
             />
             <FormInput
               label="LOINC Name"
-              value={orders.find(order => order.order_code === selectedOrder)?.loinc_name || ''}
+              value={selectedOrderValue?.loinc_name || ''}
               onChange={() => { }} // Read-only, so no change handler needed
               readOnly
             />
             <FormInput
               label="Order LOINC Description"
-              value={orders.find(order => order.order_code === selectedOrder)?.order_loinc_description || ''}
+              value={selectedOrderValue?.order_loinc_description || ''}
               onChange={() => { }} // Read-only, so no change handler needed
               readOnly
             />
@@ -69,41 +69,47 @@ const DynamicForm: React.FC = () => {
         )}
 
         {/* Additional Dropdowns */}
+        {/* Specimen-related Dropdowns */}
         <FormInput
           label="Specimen Type"
-          value={dropdownData.specimenTypes[0] || ''}
+          value={textFields.specimenType}
           onChange={handleTextChange('specimenType')}
-          options={selectedOrderSpecimen.map(s => s.specimen_type)}
+          options={dropdownData.specimenTypes}
           isDropdown
         />
 
         <FormInput
           label="Specimen Type SNOMED Code"
-          value={dropdownData.specimenTypeSnomedCodes[0] || ''}
+          value={textFields.specimenTypeSnomedCode}
           onChange={handleTextChange('specimenTypeSnomedCode')}
-          options={selectedOrderSpecimen.map(s => s.source_snomed_code)}
+          options={dropdownData.specimenTypeSnomedCodes}
+          isDropdown
         />
 
         <FormInput
           label="Source Description"
-          value={dropdownData.sourceDescriptions[0] || ''}
+          value={textFields.sourceDescription}
           onChange={handleTextChange('sourceDescription')}
           options={dropdownData.sourceDescriptions}
+          isDropdown
         />
 
         <FormInput
           label="Specimen Source"
-          value={dropdownData.specimenSources[0] || ''}
+          value={textFields.specimenSource}
           onChange={handleTextChange('specimenSource')}
-          options={selectedOrderSpecimen.map(s => s.specimen_source)}
+          options={dropdownData.specimenSources}
+          isDropdown
         />
 
         <FormInput
           label="Source SNOMED Code"
-          value={dropdownData.sourceSnomedCodes[0] || ''}
+          value={textFields.sourceSnomedCode}
           onChange={handleTextChange('sourceSnomedCode')}
           options={dropdownData.sourceSnomedCodes}
+          isDropdown
         />
+
 
         {/* Add remaining dropdowns similarly */}
 

@@ -1,14 +1,33 @@
 from django.core.management.base import BaseCommand
-from myapp.models import Order, Specimen, Submitter, Patient
-from datetime import date, time
+from myapp.models import Order, Specimen, Submitter, Patient, SpecimenType, SpecimenTypeSNOMEDCode, SourceDescription, SpecimenSource, SourceSNOMEDCode
 from faker import Faker
 import random
 
 class Command(BaseCommand):
     help = 'Add dummy data to the database'
 
+    def add_arguments(self, parser):
+        parser.add_argument(
+            '--reset',
+            action='store_true',
+            help='Delete all existing data before generating new dummy data',
+        )
+
     def handle(self, *args, **kwargs):
         fake = Faker()
+
+        # Check if the reset flag was provided
+        if kwargs['reset']:
+            self.stdout.write('Resetting database... Deleting all existing records.')
+            Order.objects.all().delete()
+            Specimen.objects.all().delete()
+            Submitter.objects.all().delete()
+            Patient.objects.all().delete()
+            SpecimenType.objects.all().delete()
+            SpecimenTypeSNOMEDCode.objects.all().delete()
+            SourceDescription.objects.all().delete()
+            SpecimenSource.objects.all().delete()
+            SourceSNOMEDCode.objects.all().delete()
 
         # Create dummy data for Order
         orders = []
@@ -22,18 +41,62 @@ class Command(BaseCommand):
             )
             orders.append(order)
 
+        # Create dummy data for SpecimenType
+        specimen_types = {}
+        specimen_type_names = ['Blood', 'Urine', 'Saliva', 'Tissue', 'Sputum']
+        for name in specimen_type_names:
+            specimen_type = SpecimenType.objects.create(
+                order=random.choice(orders),  # Assigning a random order to the SpecimenType
+                specimen_type=name
+            )
+            specimen_types[name] = specimen_type
+
+        # Create dummy data for SpecimenTypeSNOMEDCode
+        for specimen_type in specimen_types.values():
+            for _ in range(3):  # Create 3 SNOMED codes for each SpecimenType
+                SpecimenTypeSNOMEDCode.objects.create(
+                    specimen_type=specimen_type,
+                    specimen_type_snomed_code=fake.bothify(text='SNOMED###')
+                )
+
+        # Create dummy data for SourceDescription
+        for snomed_code in SpecimenTypeSNOMEDCode.objects.all():
+            for _ in range(2):  # Create 2 Source Descriptions for each SNOMED code
+                SourceDescription.objects.create(
+                    specimen_type_snomed_code=snomed_code,
+                    source_description=fake.sentence()
+                )
+
+        # Create dummy data for SpecimenSource
+        for description in SourceDescription.objects.all():
+            SpecimenSource.objects.create(
+                source_description=description,
+                specimen_source=fake.word()
+            )
+
+        # Create dummy data for SourceSNOMEDCode
+        for specimen_source in SpecimenSource.objects.all():
+            SourceSNOMEDCode.objects.create(
+                specimen_source=specimen_source,
+                source_snomed_code=fake.bothify(text='SNOMED###')
+            )
+
         # Create dummy data for Specimen
-        specimen_types = ['Blood', 'Urine', 'Saliva', 'Tissue', 'Sputum']
         for order in orders:
             for _ in range(5):
+                specimen_type = random.choice(list(specimen_types.values()))
+                specimen_type_snomed_code = random.choice(specimen_type.snomed_codes.all())
+                source_description = random.choice(specimen_type_snomed_code.source_descriptions.all())
+                specimen_source = source_description.specimen_sources.first()
+                source_snomed_code = specimen_source.snomed_codes.first()
+
                 Specimen.objects.create(
                     order=order,
-                    specimen_id=fake.unique.bothify(text='SPC###'),
-                    specimen_type=random.choice(specimen_types),
-                    specimen_type_snomed_code=fake.bothify(text='SNOMED###'),
-                    source_description=fake.sentence(),
-                    specimen_source=fake.word(),
-                    source_snomed_code=fake.bothify(text='SNOMED###')
+                    specimen_type=specimen_type,
+                    specimen_type_snomed_code=specimen_type_snomed_code,
+                    source_description=source_description,
+                    specimen_source=specimen_source,
+                    source_snomed_code=source_snomed_code
                 )
 
         # Create dummy data for Submitter

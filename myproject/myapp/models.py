@@ -10,18 +10,53 @@ class Order(models.Model):
 
     def __str__(self):
         return self.order_code
-
-class Specimen(models.Model):
-    order = models.ForeignKey(Order, related_name='specimens', on_delete=models.CASCADE)
-    specimen_id = models.CharField(max_length=100)
+    
+class SpecimenType(models.Model):
+    order = models.ForeignKey(Order, related_name='specimen_types', on_delete=models.CASCADE)
     specimen_type = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.specimen_type
+
+class SpecimenTypeSNOMEDCode(models.Model):
+    specimen_type = models.ForeignKey(SpecimenType, related_name='snomed_codes', on_delete=models.CASCADE)
     specimen_type_snomed_code = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.specimen_type_snomed_code
+
+class SourceDescription(models.Model):
+    specimen_type_snomed_code = models.ForeignKey(SpecimenTypeSNOMEDCode, related_name='source_descriptions', on_delete=models.CASCADE)
     source_description = models.TextField()
+
+    def __str__(self):
+        return self.source_description
+
+class SpecimenSource(models.Model):
+    source_description = models.ForeignKey(SourceDescription, related_name='specimen_sources', on_delete=models.CASCADE)
     specimen_source = models.CharField(max_length=255)
+
+    def __str__(self):
+        return self.specimen_source
+
+class SourceSNOMEDCode(models.Model):
+    specimen_source = models.ForeignKey(SpecimenSource, related_name='snomed_codes', on_delete=models.CASCADE)
     source_snomed_code = models.CharField(max_length=100)
 
     def __str__(self):
+        return self.source_snomed_code
+
+class Specimen(models.Model):
+    order = models.ForeignKey(Order, related_name='specimens', on_delete=models.CASCADE)
+    specimen_type = models.ForeignKey(SpecimenType, related_name='specimens', on_delete=models.CASCADE)
+    specimen_type_snomed_code = models.ForeignKey(SpecimenTypeSNOMEDCode, related_name='specimens', on_delete=models.CASCADE)
+    source_description = models.ForeignKey(SourceDescription, related_name='specimens', on_delete=models.CASCADE)
+    specimen_source = models.ForeignKey(SpecimenSource, related_name='specimens', on_delete=models.CASCADE)
+    source_snomed_code = models.ForeignKey(SourceSNOMEDCode, related_name='specimens', on_delete=models.CASCADE)
+
+    def __str__(self):
         return f"{self.specimen_type} - {self.specimen_source}"
+    
 
 class Submitter(models.Model):
     submitter_code = models.CharField(max_length=100)

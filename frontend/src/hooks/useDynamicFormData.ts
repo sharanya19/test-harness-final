@@ -1,9 +1,10 @@
-// hooks/useDynamicFormData.ts
 import { useState, useEffect } from 'react';
-import { fetchOrders, fetchDropdownData } from '../utils/axios';
+import api, { fetchOrders } from '../utils/axios';
 import { Order } from '../types/api';
+import { API_PATH } from '../utils/appRoutes';
 import { SelectChangeEvent } from '@mui/material';
 
+// Define types for dropdown data as strings
 type DropdownData = {
   specimenTypes: string[];
   specimenTypeSnomedCodes: string[];
@@ -22,6 +23,7 @@ type DropdownData = {
   extractFlags: string[];
 };
 
+// Initial dropdown data structure
 const initialDropdownData: DropdownData = {
   specimenTypes: [],
   specimenTypeSnomedCodes: [],
@@ -40,11 +42,31 @@ const initialDropdownData: DropdownData = {
   extractFlags: []
 };
 
+// Full data structures to maintain state for objects
+type FullData = {
+  specimenTypes: any[];
+  specimenTypeSnomedCodes: any[];
+  sourceDescriptions: any[];
+  specimenSources: any[];
+  sourceSnomedCodes: any[];
+};
+
+// Initial full data structure
+const initialFullData: FullData = {
+  specimenTypes: [],
+  specimenTypeSnomedCodes: [],
+  sourceDescriptions: [],
+  specimenSources: [],
+  sourceSnomedCodes: []
+};
+
 export const useDynamicFormData = () => {
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedOrder, setSelectedOrder] = useState<string>('');
   const [drawerOpen, setDrawerOpen] = useState<boolean>(true);
   const [dropdownData, setDropdownData] = useState<DropdownData>(initialDropdownData);
+  const [fullData, setFullData] = useState<FullData>(initialFullData);
+
   const [textFields, setTextFields] = useState({
     patientFirstName: '',
     patientMiddleName: '',
@@ -54,10 +76,53 @@ export const useDynamicFormData = () => {
     addressLine2: '',
     zip: '',
     email: '',
-    phoneNumber: ''
+    phoneNumber: '',
+    specimenType: '',
+    specimenTypeSnomedCode: '',
+    sourceDescription: '',
+    specimenSource: '',
+    sourceSnomedCode: ''
   });
 
-  const selectedOrderSpecimen = orders.find(o => o.order_code === selectedOrder)?.specimens || []
+  const selectedOrderValue = orders.find(o => o.order_code === selectedOrder);
+
+  useEffect(() => {
+    const loadSpecimenRelatedData = async () => {
+      try {
+        const [specimenTypeSnomedCodes, sourceDescriptions, specimenSources, sourceSnomedCodes] = await Promise.all([
+          api.get(`${API_PATH.SPECIMEN_TYPE_SNOMED_CODES}?specimen_type=${textFields.specimenType}`).then(res => res.data),
+          api.get(`${API_PATH.SOURCE_DESCRIPTIONS}?specimen_type_snomed_code=${textFields.specimenTypeSnomedCode}`).then(res => res.data),
+          api.get(`${API_PATH.SPECIMEN_SOURCES}?source_description=${textFields.sourceDescription}`).then(res => res.data),
+          api.get(`${API_PATH.SOURCE_SNOMED_CODES}?specimen_source=${textFields.specimenSource}`).then(res => res.data)
+        ]);
+
+        setFullData(prevData => ({
+          ...prevData,
+          specimenTypeSnomedCodes,
+          sourceDescriptions,
+          specimenSources,
+          sourceSnomedCodes
+        }));
+
+        setDropdownData(prevData => ({
+          ...prevData,
+          specimenTypeSnomedCodes: specimenTypeSnomedCodes.map(s => s.specimen_type_snomed_code), // Extracting only the relevant string
+          sourceDescriptions: sourceDescriptions.map(s => s.source_description),
+          specimenSources: specimenSources.map(s => s.specimen_source),
+          sourceSnomedCodes: sourceSnomedCodes.map(s => s.source_snomed_code)
+        }));
+      } catch (error) {
+        console.error("Error loading specimen-related data:", error);
+      }
+    };
+
+    if (textFields.specimenType) {
+      const specimentType = textFields.specimenType;
+      const specimentTypeId = fullData.specimenTypes.find(s => s.specimen_type === specimentType)?.id;
+      console.log('updated textFields', specimentType, textFields, specimentTypeId)
+      loadSpecimenRelatedData();
+    }
+  }, [textFields.specimenType, textFields.specimenTypeSnomedCode, textFields.sourceDescription, textFields.specimenSource]);
 
   useEffect(() => {
     const loadOrders = async () => {
@@ -71,48 +136,19 @@ export const useDynamicFormData = () => {
 
     const loadDropdownData = async () => {
       try {
-        const dropdownKeys = [
-          'SPECIMEN_TYPE',
-          'SPECIMEN_TYPE_SNOMED_CODE',
-          'SOURCE_DESCRIPTION',
-          'SPECIMEN_SOURCE',
-          'SOURCE_SNOMED_CODE',
-          'DISTRICT',
-          'PHYSICIAN_NPI',
-          'COLLECTION_DATE',
-          'COLLECTION_TIME',
-          'TEST_LOCATION',
-          'RACE',
-          'ETHNICITY',
-          'ENTRY_NUMBER',
-          'ENV',
-          'EXTRACT_FLAG'
-        ] as const;
+        const specimenTypes = await api.get(API_PATH.SPECIMEN_TYPES).then(res => res.data);
 
-        const dropdownDataPromises = dropdownKeys.map(key => fetchDropdownData(key));
-        const resolvedData = await Promise.all(dropdownDataPromises);
+        setFullData(prevData => ({
+          ...prevData,
+          specimenTypes
+        }));
 
-        const newDropdownData: DropdownData = {
-          specimenTypes: resolvedData[0],
-          specimenTypeSnomedCodes: resolvedData[1],
-          sourceDescriptions: resolvedData[2],
-          specimenSources: resolvedData[3],
-          sourceSnomedCodes: resolvedData[4],
-          districts: resolvedData[5],
-          physicianNpis: resolvedData[6],
-          collectionDates: resolvedData[7],
-          collectionTimes: resolvedData[8],
-          testLocations: resolvedData[9],
-          races: resolvedData[10],
-          ethnicities: resolvedData[11],
-          entryNumbers: resolvedData[12],
-          envs: resolvedData[13],
-          extractFlags: resolvedData[14]
-        };
-
-        setDropdownData(newDropdownData);
+        setDropdownData(prevData => ({
+          ...prevData,
+          specimenTypes: specimenTypes.map(s => s.specimen_type) // Extracting only the relevant string
+        }));
       } catch (error) {
-        console.error("Error fetching dropdown data:", error);
+        console.error("Error loading dropdown data:", error);
       }
     };
 
@@ -128,7 +164,8 @@ export const useDynamicFormData = () => {
     setSelectedOrder(event.target.value as string);
   };
 
-  const handleTextChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTextChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
+    console.log("handleTextChange", field, event.target.value)
     setTextFields(prevFields => ({
       ...prevFields,
       [field]: event.target.value
@@ -146,16 +183,22 @@ export const useDynamicFormData = () => {
       addressLine2: '',
       zip: '',
       email: '',
-      phoneNumber: ''
+      phoneNumber: '',
+      specimenType: '',
+      specimenTypeSnomedCode: '',
+      sourceDescription: '',
+      specimenSource: '',
+      sourceSnomedCode: ''
     });
   };
 
   return {
     orders,
     selectedOrder,
-    selectedOrderSpecimen,
+    selectedOrderValue,
     drawerOpen,
     dropdownData,
+    fullData,
     textFields,
     handleDrawerToggle,
     handleOrderChange,

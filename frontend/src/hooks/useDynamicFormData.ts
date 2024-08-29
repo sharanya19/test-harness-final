@@ -57,6 +57,8 @@ export const useDynamicFormData = () => {
     phoneNumber: ''
   });
 
+  const selectedOrderSpecimen = orders.find(o => o.order_code === selectedOrder)?.specimens || []
+
   useEffect(() => {
     const loadOrders = async () => {
       try {
@@ -151,6 +153,7 @@ export const useDynamicFormData = () => {
   return {
     orders,
     selectedOrder,
+    selectedOrderSpecimen,
     drawerOpen,
     dropdownData,
     textFields,

@@ -7,6 +7,7 @@ const DynamicForm: React.FC = () => {
   const {
     orders,
     selectedOrder,
+    selectedOrderSpecimen,
     drawerOpen,
     dropdownData,
     textFields,
@@ -34,6 +35,7 @@ const DynamicForm: React.FC = () => {
           value={selectedOrder}
           onChange={handleOrderChange}
           options={orders.map(order => order.order_code)}
+          isDropdown
         />
 
         {/* Display selected order details */}
@@ -42,25 +44,25 @@ const DynamicForm: React.FC = () => {
             <FormInput
               label="Order Name"
               value={orders.find(order => order.order_code === selectedOrder)?.order_name || ''}
-              onChange={() => {}} // Read-only, so no change handler needed
+              onChange={() => { }} // Read-only, so no change handler needed
               readOnly
             />
             <FormInput
               label="Order LOINC Code"
               value={orders.find(order => order.order_code === selectedOrder)?.order_loinc_code || ''}
-              onChange={() => {}} // Read-only, so no change handler needed
+              onChange={() => { }} // Read-only, so no change handler needed
               readOnly
             />
             <FormInput
               label="LOINC Name"
               value={orders.find(order => order.order_code === selectedOrder)?.loinc_name || ''}
-              onChange={() => {}} // Read-only, so no change handler needed
+              onChange={() => { }} // Read-only, so no change handler needed
               readOnly
             />
             <FormInput
               label="Order LOINC Description"
               value={orders.find(order => order.order_code === selectedOrder)?.order_loinc_description || ''}
-              onChange={() => {}} // Read-only, so no change handler needed
+              onChange={() => { }} // Read-only, so no change handler needed
               readOnly
             />
           </Box>
@@ -71,14 +73,15 @@ const DynamicForm: React.FC = () => {
           label="Specimen Type"
           value={dropdownData.specimenTypes[0] || ''}
           onChange={handleTextChange('specimenType')}
-          options={dropdownData.specimenTypes}
+          options={selectedOrderSpecimen.map(s => s.specimen_type)}
+          isDropdown
         />
 
         <FormInput
           label="Specimen Type SNOMED Code"
           value={dropdownData.specimenTypeSnomedCodes[0] || ''}
           onChange={handleTextChange('specimenTypeSnomedCode')}
-          options={dropdownData.specimenTypeSnomedCodes}
+          options={selectedOrderSpecimen.map(s => s.source_snomed_code)}
         />
 
         <FormInput
@@ -92,7 +95,7 @@ const DynamicForm: React.FC = () => {
           label="Specimen Source"
           value={dropdownData.specimenSources[0] || ''}
           onChange={handleTextChange('specimenSource')}
-          options={dropdownData.specimenSources}
+          options={selectedOrderSpecimen.map(s => s.specimen_source)}
         />
 
         <FormInput

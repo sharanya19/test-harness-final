@@ -1,6 +1,7 @@
+// hooks/useDynamicFormData.ts
 import { useState, useEffect } from 'react';
 import api, { fetchOrders } from '../utils/axios';
-import { Order } from '../types/api';
+import { Order, SourceDescription, SourceSNOMEDCode, Specimen, SpecimenSource, SpecimenType, SpecimenTypeSNOMEDCode } from '../types/api';
 import { API_PATH } from '../utils/appRoutes';
 import { SelectChangeEvent } from '@mui/material';
 
@@ -44,11 +45,11 @@ const initialDropdownData: DropdownData = {
 
 // Full data structures to maintain state for objects
 type FullData = {
-  specimenTypes: any[];
-  specimenTypeSnomedCodes: any[];
-  sourceDescriptions: any[];
-  specimenSources: any[];
-  sourceSnomedCodes: any[];
+  specimenTypes: SpecimenType[];
+  specimenTypeSnomedCodes: SpecimenTypeSNOMEDCode[];
+  sourceDescriptions: SourceDescription[];
+  specimenSources: SpecimenSource[];
+  sourceSnomedCodes: SourceSNOMEDCode[];
 };
 
 // Initial full data structure
@@ -66,7 +67,7 @@ export const useDynamicFormData = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(true);
   const [dropdownData, setDropdownData] = useState<DropdownData>(initialDropdownData);
   const [fullData, setFullData] = useState<FullData>(initialFullData);
-
+  
   const [textFields, setTextFields] = useState({
     patientFirstName: '',
     patientMiddleName: '',
@@ -90,10 +91,10 @@ export const useDynamicFormData = () => {
     const loadSpecimenRelatedData = async () => {
       try {
         const [specimenTypeSnomedCodes, sourceDescriptions, specimenSources, sourceSnomedCodes] = await Promise.all([
-          api.get(`${API_PATH.SPECIMEN_TYPE_SNOMED_CODES}?specimen_type=${textFields.specimenType}`).then(res => res.data),
-          api.get(`${API_PATH.SOURCE_DESCRIPTIONS}?specimen_type_snomed_code=${textFields.specimenTypeSnomedCode}`).then(res => res.data),
-          api.get(`${API_PATH.SPECIMEN_SOURCES}?source_description=${textFields.sourceDescription}`).then(res => res.data),
-          api.get(`${API_PATH.SOURCE_SNOMED_CODES}?specimen_source=${textFields.specimenSource}`).then(res => res.data)
+          api.get<SpecimenTypeSNOMEDCode[]>(`${API_PATH.SPECIMEN_TYPE_SNOMED_CODES}?specimen_type=${textFields.specimenType}`).then(res => res.data),
+          api.get<SourceDescription[]>(`${API_PATH.SOURCE_DESCRIPTIONS}?specimen_type_snomed_code=${textFields.specimenTypeSnomedCode}`).then(res => res.data),
+          api.get<SpecimenSource[]>(`${API_PATH.SPECIMEN_SOURCES}?source_description=${textFields.sourceDescription}`).then(res => res.data),
+          api.get<SourceSNOMEDCode[]>(`${API_PATH.SOURCE_SNOMED_CODES}?specimen_source=${textFields.specimenSource}`).then(res => res.data)
         ]);
 
         setFullData(prevData => ({
@@ -106,7 +107,7 @@ export const useDynamicFormData = () => {
 
         setDropdownData(prevData => ({
           ...prevData,
-          specimenTypeSnomedCodes: specimenTypeSnomedCodes.map(s => s.specimen_type_snomed_code), // Extracting only the relevant string
+          specimenTypeSnomedCodes: specimenTypeSnomedCodes.map(s => s.specimen_type_snomed_code),
           sourceDescriptions: sourceDescriptions.map(s => s.source_description),
           specimenSources: specimenSources.map(s => s.specimen_source),
           sourceSnomedCodes: sourceSnomedCodes.map(s => s.source_snomed_code)
@@ -117,9 +118,6 @@ export const useDynamicFormData = () => {
     };
 
     if (textFields.specimenType) {
-      const specimentType = textFields.specimenType;
-      const specimentTypeId = fullData.specimenTypes.find(s => s.specimen_type === specimentType)?.id;
-      console.log('updated textFields', specimentType, textFields, specimentTypeId)
       loadSpecimenRelatedData();
     }
   }, [textFields.specimenType, textFields.specimenTypeSnomedCode, textFields.sourceDescription, textFields.specimenSource]);
@@ -136,7 +134,7 @@ export const useDynamicFormData = () => {
 
     const loadDropdownData = async () => {
       try {
-        const specimenTypes = await api.get(API_PATH.SPECIMEN_TYPES).then(res => res.data);
+        const specimenTypes = await api.get<SpecimenType[]>(API_PATH.SPECIMEN_TYPES).then(res => res.data);
 
         setFullData(prevData => ({
           ...prevData,
@@ -145,7 +143,7 @@ export const useDynamicFormData = () => {
 
         setDropdownData(prevData => ({
           ...prevData,
-          specimenTypes: specimenTypes.map(s => s.specimen_type) // Extracting only the relevant string
+          specimenTypes: specimenTypes.map(s => s.specimen_type)
         }));
       } catch (error) {
         console.error("Error loading dropdown data:", error);
@@ -165,7 +163,6 @@ export const useDynamicFormData = () => {
   };
 
   const handleTextChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
-    console.log("handleTextChange", field, event.target.value)
     setTextFields(prevFields => ({
       ...prevFields,
       [field]: event.target.value

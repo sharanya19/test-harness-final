@@ -110,9 +110,6 @@ const DynamicForm: React.FC = () => {
           isDropdown
         />
 
-
-        {/* Add remaining dropdowns similarly */}
-
         {/* Text Fields for typing details */}
         <FormInput
           label="Patient First Name"

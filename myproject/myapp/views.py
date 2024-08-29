@@ -1,201 +1,200 @@
-# myapp/views.py
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.response import Response
-from rest_framework.views import APIView
-from rest_framework.response import Response
-from rest_framework.decorators import action
-from rest_framework.exceptions import NotFound
-from .models import Order, Specimen, Submitter, Patient
-from .serializers import OrderSerializer, SpecimenSerializer, SubmitterSerializer, PatientSerializer
+from django.db.models import Q
+from .models import (Order, Specimen, SpecimenType, Submitter, Patient,  
+    SpecimenTypeSNOMEDCode, 
+    SourceDescription, 
+    SpecimenSource, 
+    SourceSNOMEDCode)
+from .serializers import (OrderSerializer, SpecimenSerializer, SpecimenTypeSerializer, SubmitterSerializer, PatientSerializer, SpecimenTypeSerializer, SpecimenTypeSNOMEDCodeSerializer, 
+    SourceDescriptionSerializer, 
+    SpecimenSourceSerializer, 
+    SourceSNOMEDCodeSerializer)
 
-# ViewSets for CRUD operations
 class OrderViewSet(viewsets.ModelViewSet):
     queryset = Order.objects.all()
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query_params = self.request.query_params
+        
+        filter_conditions = Q()
+        for param, value in query_params.items():
+            if param in ['order_code', 'order_name', 'order_loinc_code', 'loinc_name', 'order_loinc_description']:
+                filter_conditions &= Q(**{f"{param}__icontains": value})
+        
+        queryset = queryset.filter(filter_conditions)
+        return queryset
 
 class SpecimenViewSet(viewsets.ModelViewSet):
     queryset = Specimen.objects.all()
     serializer_class = SpecimenSerializer
     permission_classes = [IsAuthenticated]
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query_params = self.request.query_params
+        
+        filter_conditions = Q()
+        for param, value in query_params.items():
+            if param in ['specimen_id', 'specimen_type', 'specimen_type_snomed_code', 'source_description', 'specimen_source', 'source_snomed_code']:
+                filter_conditions &= Q(**{f"{param}__icontains": value})
+        
+        queryset = queryset.filter(filter_conditions)
+        return queryset
+
+class SpecimenTypeViewSet(viewsets.ModelViewSet):
+    queryset = SpecimenType.objects.all()
+    serializer_class = SpecimenTypeSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query_params = self.request.query_params
+        
+        filter_conditions = Q()
+        for param, value in query_params.items():
+            if param in ['specimen_type']:
+                filter_conditions &= Q(**{f"{param}__icontains": value})
+        
+        queryset = queryset.filter(filter_conditions)
+        return queryset
+
 class SubmitterViewSet(viewsets.ModelViewSet):
     queryset = Submitter.objects.all()
     serializer_class = SubmitterSerializer
     permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query_params = self.request.query_params
+        
+        filter_conditions = Q()
+        for param, value in query_params.items():
+            if param in ['submitter_code', 'district', 'orderingphysiciannpi', 'testlocation']:
+                filter_conditions &= Q(**{f"{param}__icontains": value})
+            elif param in ['collectiondate', 'collectiontime']:
+                filter_conditions &= Q(**{param: value})
+        
+        queryset = queryset.filter(filter_conditions)
+        return queryset
 
 class PatientViewSet(viewsets.ModelViewSet):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
     permission_classes = [IsAuthenticated]
 
-# Dropdown views for Specimen fields
-class SpecimenTypeDropdownView(APIView):
-    def get(self, request):
-        order_code = request.query_params.get('order_code')
-        specimens = Specimen.objects.filter(order__order_code=order_code)
-        specimen_types = specimens.values_list('specimen_type', flat=True).distinct()
-        return Response(list(specimen_types))
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query_params = self.request.query_params
+        
+        filter_conditions = Q()
+        for param, value in query_params.items():
+            if param in ['patient_first_name', 'patient_middle_name', 'patient_last_name', 'city', 'state', 'zip', 'email', 'phone_number', 'race', 'ethnicity', 'entry_number', 'env']:
+                filter_conditions &= Q(**{f"{param}__icontains": value})
+            elif param == 'patient_gender':
+                filter_conditions &= Q(patient_gender=value)
+            elif param == 'dob':
+                filter_conditions &= Q(dob=value)
+            elif param == 'extract_flag':
+                filter_conditions &= Q(extract_flag=value)
+        
+        queryset = queryset.filter(filter_conditions)
+        return queryset
 
-class SpecimenTypeSnomedCodeDropdownView(APIView):
-    def get(self, request):
-        specimen_type = request.query_params.get('specimen_type')
-        specimens = Specimen.objects.filter(specimen_type=specimen_type)
-        snomed_codes = specimens.values_list('specimen_type_snomed_code', flat=True).distinct()
-        return Response(list(snomed_codes))
+class SpecimenTypeViewSet(viewsets.ModelViewSet):
+    queryset = SpecimenType.objects.all()
+    serializer_class = SpecimenTypeSerializer
+    permission_classes = [IsAuthenticated]
 
-class SourceDescriptionDropdownView(APIView):
-    def get(self, request):
-        specimen_type_snomed_code = request.query_params.get('specimen_type_snomed_code')
-        specimens = Specimen.objects.filter(specimen_type_snomed_code=specimen_type_snomed_code)
-        source_descriptions = specimens.values_list('source_description', flat=True).distinct()
-        return Response(list(source_descriptions))
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query_params = self.request.query_params
 
-class SpecimenSourceDropdownView(APIView):
-    def get(self, request):
-        source_description = request.query_params.get('source_description')
-        specimens = Specimen.objects.filter(source_description=source_description)
-        specimen_sources = specimens.values_list('specimen_source', flat=True).distinct()
-        return Response(list(specimen_sources))
+        filter_conditions = Q()
+        for param, value in query_params.items():
+            if param == 'specimen_type':
+                filter_conditions &= Q(specimen_type__icontains=value)
+            elif param == 'order':
+                filter_conditions &= Q(order__order_code=value)
 
-class SourceSnomedCodeDropdownView(APIView):
-    def get(self, request):
-        specimen_source = request.query_params.get('specimen_source')
-        specimens = Specimen.objects.filter(specimen_source=specimen_source)
-        source_snomed_codes = specimens.values_list('source_snomed_code', flat=True).distinct()
-        return Response(list(source_snomed_codes))
+        queryset = queryset.filter(filter_conditions)
+        return queryset
 
-# Dropdown views for Submitter fields
-class DistrictDropdownView(APIView):
-    def get(self, request):
-        submitters = Submitter.objects.all()
-        districts = submitters.values_list('district', flat=True).distinct()
-        return Response(list(districts))
+class SpecimenTypeSNOMEDCodeViewSet(viewsets.ModelViewSet):
+    queryset = SpecimenTypeSNOMEDCode.objects.all()
+    serializer_class = SpecimenTypeSNOMEDCodeSerializer
+    permission_classes = [IsAuthenticated]
 
-class PhysicianNpiDropdownView(APIView):
-    def get(self, request):
-        submitters = Submitter.objects.all()
-        physician_npis = submitters.values_list('orderingphysiciannpi', flat=True).distinct()
-        return Response(list(physician_npis))
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query_params = self.request.query_params
 
-class CollectionDateDropdownView(APIView):
-    def get(self, request):
-        submitters = Submitter.objects.all()
-        collection_dates = submitters.values_list('collectiondate', flat=True).distinct()
-        return Response(list(collection_dates))
+        filter_conditions = Q()
+        for param, value in query_params.items():
+            if param == 'specimen_type_snomed_code':
+                filter_conditions &= Q(specimen_type_snomed_code__icontains=value)
+            elif param == 'specimen_type':
+                filter_conditions &= Q(specimen_type__specimen_type__icontains=value)
 
-class CollectionTimeDropdownView(APIView):
-    def get(self, request):
-        submitters = Submitter.objects.all()
-        collection_times = submitters.values_list('collectiontime', flat=True).distinct()
-        return Response(list(collection_times))
+        queryset = queryset.filter(filter_conditions)
+        return queryset
 
-class TestLocationDropdownView(APIView):
-    def get(self, request):
-        submitters = Submitter.objects.all()
-        test_locations = submitters.values_list('testlocation', flat=True).distinct()
-        return Response(list(test_locations))
+class SourceDescriptionViewSet(viewsets.ModelViewSet):
+    queryset = SourceDescription.objects.all()
+    serializer_class = SourceDescriptionSerializer
+    permission_classes = [IsAuthenticated]
 
-# Dropdown views for Patient fields
-class PatientFirstNameDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        first_names = patients.values_list('patient_first_name', flat=True).distinct()
-        return Response(list(first_names))
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query_params = self.request.query_params
 
-class PatientMiddleNameDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        middle_names = patients.values_list('patient_middle_name', flat=True).distinct()
-        return Response(list(middle_names))
+        filter_conditions = Q()
+        for param, value in query_params.items():
+            if param == 'source_description':
+                filter_conditions &= Q(source_description__icontains=value)
+            elif param == 'specimen_type_snomed_code':
+                filter_conditions &= Q(specimen_type_snomed_code__specimen_type_snomed_code__icontains=value)
 
-class PatientLastNameDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        last_names = patients.values_list('patient_last_name', flat=True).distinct()
-        return Response(list(last_names))
+        queryset = queryset.filter(filter_conditions)
+        return queryset
 
-class PatientGenderDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        genders = patients.values_list('patient_gender', flat=True).distinct()
-        return Response(list(genders))
+class SpecimenSourceViewSet(viewsets.ModelViewSet):
+    queryset = SpecimenSource.objects.all()
+    serializer_class = SpecimenSourceSerializer
+    permission_classes = [IsAuthenticated]
 
-class DobDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        dobs = patients.values_list('dob', flat=True).distinct()
-        return Response(list(dobs))
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query_params = self.request.query_params
 
-class AddressLine1DropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        addresses_line1 = patients.values_list('address_line1', flat=True).distinct()
-        return Response(list(addresses_line1))
+        filter_conditions = Q()
+        for param, value in query_params.items():
+            if param == 'specimen_source':
+                filter_conditions &= Q(specimen_source__icontains=value)
+            elif param == 'source_description':
+                filter_conditions &= Q(source_description__source_description__icontains=value)
 
-class AddressLine2DropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        addresses_line2 = patients.values_list('address_line2', flat=True).distinct()
-        return Response(list(addresses_line2))
+        queryset = queryset.filter(filter_conditions)
+        return queryset
 
-class CityDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        cities = patients.values_list('city', flat=True).distinct()
-        return Response(list(cities))
+class SourceSNOMEDCodeViewSet(viewsets.ModelViewSet):
+    queryset = SourceSNOMEDCode.objects.all()
+    serializer_class = SourceSNOMEDCodeSerializer
+    permission_classes = [IsAuthenticated]
 
-class StateDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        states = patients.values_list('state', flat=True).distinct()
-        return Response(list(states))
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        query_params = self.request.query_params
 
-class ZipDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        zips = patients.values_list('zip', flat=True).distinct()
-        return Response(list(zips))
+        filter_conditions = Q()
+        for param, value in query_params.items():
+            if param == 'source_snomed_code':
+                filter_conditions &= Q(source_snomed_code__icontains=value)
+            elif param == 'specimen_source':
+                filter_conditions &= Q(specimen_source__specimen_source__icontains=value)
 
-class EmailDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        emails = patients.values_list('email', flat=True).distinct()
-        return Response(list(emails))
-
-class PhoneNumberDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        phone_numbers = patients.values_list('phone_number', flat=True).distinct()
-        return Response(list(phone_numbers))
-
-class RaceDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        races = patients.values_list('race', flat=True).distinct()
-        return Response(list(races))
-
-class EthnicityDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        ethnicities = patients.values_list('ethnicity', flat=True).distinct()
-        return Response(list(ethnicities))
-
-class EntryNumberDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        entry_numbers = patients.values_list('entry_number', flat=True).distinct()
-        return Response(list(entry_numbers))
-
-class EnvDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        envs = patients.values_list('env', flat=True).distinct()
-        return Response(list(envs))
-
-class ExtractFlagDropdownView(APIView):
-    def get(self, request):
-        patients = Patient.objects.all()
-        extract_flags = patients.values_list('extract_flag', flat=True).distinct()
-        return Response(list(extract_flags))
+        queryset = queryset.filter(filter_conditions)
+        return queryset

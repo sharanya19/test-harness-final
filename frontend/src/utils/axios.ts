@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { Order, Specimen, Submitter, Patient } from '../types/api'; // Adjust imports as needed
 import { BASE_URL, API_PATH } from './appRoutes';
-import { getToken } from './auth';
+import { getRefreshToken, getToken, setToken } from './auth';
 
 // Create an instance of axios with base URL
 const api = axios.create({
@@ -29,15 +29,43 @@ api.interceptors.request.use(config => {
 // Interceptor to handle responses and errors
 api.interceptors.response.use(response => {
   return response;
-}, error => {
-  if (error.response && error.response.status === 401) {
-    console.error("Unauthorized: Token may be invalid or expired.");
-    window.location.href = '/login';  // Redirect to login page
-    // Optionally, redirect to login or attempt to refresh the token here
+}, async error => {
+  const originalRequest = error.config;
+
+  // Check if the error is due to an expired token
+  if (error.response && error.response.status === 401 && !originalRequest._retry) {
+    originalRequest._retry = true;
+
+    try {
+      const refreshToken = getRefreshToken();
+
+      // Attempt to refresh the token using the refresh token endpoint
+      const response = await axios.post(API_PATH.REFRESH_TOKEN, {
+        refresh: refreshToken,
+      });
+
+      if (response.status === 200) {
+        const newAccessToken = response.data.access;
+        const newRefreshToken = response.data.refresh;
+
+        // Update tokens
+        setToken(newAccessToken, newRefreshToken);
+
+        // Update the Authorization header with the new access token
+        originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+
+        // Retry the original request with the new token
+        return api(originalRequest);
+      }
+    } catch (refreshError) {
+      console.error("Error refreshing token:", refreshError);
+      // Redirect to login page if refresh token is invalid or expired
+      window.location.href = '/login';
+    }
   }
+
   return Promise.reject(error);
 });
-
 // Fetch Orders
 export const fetchOrders = async (): Promise<Order[]> => {
   try {

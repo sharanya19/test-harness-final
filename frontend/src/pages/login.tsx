@@ -27,7 +27,7 @@ export default function Login() {
 
         api.post<LoginResponse>(API_PATH.LOGIN, { username, password })
             .then((response) => {
-                setToken(response.data.access);
+                setToken(response.data.access, response.data.refresh);
                 router.push('/');
             })
             .catch((error) => {

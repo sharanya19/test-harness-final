@@ -9,7 +9,16 @@ from .views import (
     SpecimenSourceViewSet,
     SourceSNOMEDCodeViewSet,
     SubmitterViewSet, 
-    PatientViewSet
+    PatientViewSet,
+    CityViewSet,
+    StateViewSet,
+    RaceViewSet,
+    EnvironmentViewSet,
+    EthnicityViewSet,
+    GenderViewSet,
+    DistrictViewSet,
+    OrderingPhysicianNPIViewSet,
+    TestLocationViewSet
 )
 
 # Create a router and register viewsets
@@ -22,7 +31,16 @@ router.register(r'source-descriptions', SourceDescriptionViewSet)
 router.register(r'specimen-sources', SpecimenSourceViewSet)
 router.register(r'source-snomed-codes', SourceSNOMEDCodeViewSet)
 router.register(r'submissions', SubmitterViewSet)
+router.register(r'districts', DistrictViewSet)
+router.register(r'test-locations', TestLocationViewSet)
+router.register(r'ordering-physicians', OrderingPhysicianNPIViewSet)
 router.register(r'patients', PatientViewSet)
+router.register(r'cities', CityViewSet)
+router.register(r'states', StateViewSet)
+router.register(r'races', RaceViewSet)
+router.register(r'ethnicities', EthnicityViewSet)
+router.register(r'environments', EnvironmentViewSet)
+router.register(r'genders', GenderViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

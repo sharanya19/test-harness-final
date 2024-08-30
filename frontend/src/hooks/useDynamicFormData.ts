@@ -1,27 +1,25 @@
-// hooks/useDynamicFormData.ts
 import { useState, useEffect } from 'react';
-import api, { fetchOrders } from '../utils/axios';
-import { Order, SourceDescription, SourceSNOMEDCode, Specimen, SpecimenSource, SpecimenType, SpecimenTypeSNOMEDCode } from '../types/api';
+import api from '../utils/axios';
+import { Order, Specimen, SpecimenSource, SpecimenType, SourceDescription, SourceSNOMEDCode, SpecimenTypeSNOMEDCode, City, State, Race, Ethnicity, Environment, Gender, District, TestLocation, OrderingPhysicianNPI, Submitter } from '../types/api';
 import { API_PATH } from '../utils/appRoutes';
 import { SelectChangeEvent } from '@mui/material';
 
-// Define types for dropdown data as strings
+// Define types for dropdown data
 type DropdownData = {
   specimenTypes: string[];
   specimenTypeSnomedCodes: string[];
   sourceDescriptions: string[];
   specimenSources: string[];
   sourceSnomedCodes: string[];
-  districts: string[];
-  physicianNpis: string[];
-  collectionDates: string[];
-  collectionTimes: string[];
-  testLocations: string[];
+  cities: string[];
+  states: string[];
   races: string[];
   ethnicities: string[];
-  entryNumbers: string[];
-  envs: string[];
-  extractFlags: string[];
+  environments: string[];
+  genders: string[];
+  districts: string[];
+  testLocations: string[];
+  orderingPhysicians: string[];
 };
 
 // Initial dropdown data structure
@@ -31,16 +29,15 @@ const initialDropdownData: DropdownData = {
   sourceDescriptions: [],
   specimenSources: [],
   sourceSnomedCodes: [],
-  districts: [],
-  physicianNpis: [],
-  collectionDates: [],
-  collectionTimes: [],
-  testLocations: [],
+  cities: [],
+  states: [],
   races: [],
   ethnicities: [],
-  entryNumbers: [],
-  envs: [],
-  extractFlags: []
+  environments: [],
+  genders: [],
+  districts: [],
+  testLocations: [],
+  orderingPhysicians: []
 };
 
 // Full data structures to maintain state for objects
@@ -50,6 +47,15 @@ type FullData = {
   sourceDescriptions: SourceDescription[];
   specimenSources: SpecimenSource[];
   sourceSnomedCodes: SourceSNOMEDCode[];
+  cities: City[];
+  states: State[];
+  races: Race[];
+  ethnicities: Ethnicity[];
+  environments: Environment[];
+  genders: Gender[];
+  districts: District[];
+  testLocations: TestLocation[];
+  orderingPhysicians: OrderingPhysicianNPI[];
 };
 
 // Initial full data structure
@@ -58,7 +64,16 @@ const initialFullData: FullData = {
   specimenTypeSnomedCodes: [],
   sourceDescriptions: [],
   specimenSources: [],
-  sourceSnomedCodes: []
+  sourceSnomedCodes: [],
+  cities: [],
+  states: [],
+  races: [],
+  ethnicities: [],
+  environments: [],
+  genders: [],
+  districts: [],
+  testLocations: [],
+  orderingPhysicians: []
 };
 
 export const useDynamicFormData = () => {
@@ -67,7 +82,7 @@ export const useDynamicFormData = () => {
   const [drawerOpen, setDrawerOpen] = useState<boolean>(true);
   const [dropdownData, setDropdownData] = useState<DropdownData>(initialDropdownData);
   const [fullData, setFullData] = useState<FullData>(initialFullData);
-  
+
   const [textFields, setTextFields] = useState({
     patientFirstName: '',
     patientMiddleName: '',
@@ -82,7 +97,16 @@ export const useDynamicFormData = () => {
     specimenTypeSnomedCode: '',
     sourceDescription: '',
     specimenSource: '',
-    sourceSnomedCode: ''
+    sourceSnomedCode: '',
+    city: '',
+    state: '',
+    race: '',
+    ethnicity: '',
+    environment: '',
+    gender: '',
+    district: '',
+    testLocation: '',
+    orderingPhysician: ''
   });
 
   const selectedOrderValue = orders.find(o => o.order_code === selectedOrder);
@@ -125,7 +149,7 @@ export const useDynamicFormData = () => {
   useEffect(() => {
     const loadOrders = async () => {
       try {
-        const fetchedOrders = await fetchOrders();
+        const fetchedOrders = await api.get<Order[]>(API_PATH.ORDERS).then(res => res.data);
         setOrders(fetchedOrders);
       } catch (error) {
         console.error("Error fetching orders:", error);
@@ -134,16 +158,56 @@ export const useDynamicFormData = () => {
 
     const loadDropdownData = async () => {
       try {
-        const specimenTypes = await api.get<SpecimenType[]>(API_PATH.SPECIMEN_TYPES).then(res => res.data);
+        const [
+          specimenTypes,
+          cities,
+          states,
+          races,
+          ethnicities,
+          environments,
+          genders,
+          districts,
+          testLocations,
+          orderingPhysicians
+        ] = await Promise.all([
+          api.get<SpecimenType[]>(API_PATH.SPECIMEN_TYPES).then(res => res.data),
+          api.get<City[]>(API_PATH.CITIES).then(res => res.data),
+          api.get<State[]>(API_PATH.STATES).then(res => res.data),
+          api.get<Race[]>(API_PATH.RACES).then(res => res.data),
+          api.get<Ethnicity[]>(API_PATH.ETHNICITIES).then(res => res.data),
+          api.get<Environment[]>(API_PATH.ENVIRONMENTS).then(res => res.data),
+          api.get<Gender[]>(API_PATH.GENDERS).then(res => res.data),
+          api.get<District[]>(API_PATH.DISTRICTS).then(res => res.data),
+          api.get<TestLocation[]>(API_PATH.TEST_LOCATIONS).then(res => res.data),
+          api.get<OrderingPhysicianNPI[]>(API_PATH.ORDERING_PHYSICIANS).then(res => res.data)
+        ]);
 
         setFullData(prevData => ({
           ...prevData,
-          specimenTypes
+          specimenTypes,
+          cities,
+          states,
+          races,
+          ethnicities,
+          environments,
+          genders,
+          districts,
+          testLocations,
+          orderingPhysicians
         }));
 
         setDropdownData(prevData => ({
           ...prevData,
-          specimenTypes: specimenTypes.map(s => s.specimen_type)
+          specimenTypes: specimenTypes.map(s => s.specimen_type),
+          cities: cities.map(c => c.name),
+          states: states.map(s => s.name),
+          races: races.map(r => r.name),
+          ethnicities: ethnicities.map(e => e.name),
+          environments: environments.map(e => e.name),
+          genders: genders.map(g => g.name),
+          districts: districts.map(d => d.name),
+          testLocations: testLocations.map(t => t.location_name),
+          orderingPhysicians: orderingPhysicians.map(o => o.npi_code)
         }));
       } catch (error) {
         console.error("Error loading dropdown data:", error);
@@ -162,10 +226,12 @@ export const useDynamicFormData = () => {
     setSelectedOrder(event.target.value as string);
   };
 
-  const handleTextChange = (field: string) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | SelectChangeEvent<string>) => {
+  const handleTextChange = (field: string) => (
+    event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     setTextFields(prevFields => ({
       ...prevFields,
-      [field]: event.target.value
+      [field]: event.target.value,
     }));
   };
 
@@ -185,7 +251,16 @@ export const useDynamicFormData = () => {
       specimenTypeSnomedCode: '',
       sourceDescription: '',
       specimenSource: '',
-      sourceSnomedCode: ''
+      sourceSnomedCode: '',
+      city: '',
+      state: '',
+      race: '',
+      ethnicity: '',
+      environment: '',
+      gender: '',
+      district: '',
+      testLocation: '',
+      orderingPhysician: ''
     });
   };
 

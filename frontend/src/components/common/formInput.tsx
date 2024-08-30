@@ -6,20 +6,21 @@ type OnChangeSelect = (event: SelectChangeEvent<string>) => void;
 type FormInputProps = {
   label: string;
   value: string;
-  onChange: (OnChangeSelect) | ((event: React.ChangeEvent<HTMLInputElement>) => void);
-  options?: string[]; // If options are provided, render a Select, otherwise render a TextField
-  isDropdown?: boolean; // Optional flag to explicitly mark this as a dropdown
+  onChange: (OnChangeSelect | ((event: React.ChangeEvent<HTMLInputElement>) => void));
+  options?: string[];
+  isDropdown?: boolean;
   readOnly?: boolean;
 };
 
 const FormInput: React.FC<FormInputProps> = ({ label, value, onChange, options, isDropdown, readOnly = false }) => {
-  if (options || isDropdown) {
+  if (isDropdown || options) {
     return (
       <FormControl fullWidth margin="normal">
         <InputLabel>{label}</InputLabel>
         <Select
           value={value}
           onChange={onChange as OnChangeSelect}
+          inputProps={{ readOnly }}
         >
           {options?.map((option) => (
             <MenuItem key={option} value={option}>
@@ -36,9 +37,10 @@ const FormInput: React.FC<FormInputProps> = ({ label, value, onChange, options, 
       margin="normal"
       label={label}
       value={value}
+      onChange={onChange as (event: React.ChangeEvent<HTMLInputElement>) => void}
       InputProps={{ readOnly }}
     />
-  )
+  );
 };
 
 export default FormInput;

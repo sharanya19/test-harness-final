@@ -22,6 +22,15 @@ const API_PATH = {
     SOURCE_SNOMED_CODES: `${BASE_URL}api/source-snomed-codes/`,
     SUBMISSIONS: `${BASE_URL}api/submissions/`,
     PATIENTS: `${BASE_URL}api/patients/`,
+    CITIES: `${BASE_URL}api/cities/`,
+    STATES: `${BASE_URL}api/states/`,
+    RACES: `${BASE_URL}api/races/`,
+    ETHNICITIES: `${BASE_URL}api/ethnicities/`,
+    ENVIRONMENTS: `${BASE_URL}api/environments/`,
+    GENDERS: `${BASE_URL}api/genders/`,
+    DISTRICTS: `${BASE_URL}api/districts/`,
+    TEST_LOCATIONS: `${BASE_URL}api/test-locations/`,
+    ORDERING_PHYSICIANS: `${BASE_URL}api/ordering-physicians/`,
 };
 
 export {

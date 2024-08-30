@@ -1,7 +1,7 @@
 import React from 'react';
-import { Button, Drawer, Box } from '@mui/material';
-import { useDynamicFormData } from '@/hooks/useDynamicFormData';
-import FormInput from '@/components/common/formInput';
+import { Box, Button, Drawer } from '@mui/material';
+import FormInput from './common/formInput'; // Ensure FormInput component is correctly imported
+import { useDynamicFormData } from '../hooks/useDynamicFormData'; // Ensure useDynamicFormData is correctly imported
 
 const DynamicForm: React.FC = () => {
   const {
@@ -14,11 +14,12 @@ const DynamicForm: React.FC = () => {
     handleDrawerToggle,
     handleOrderChange,
     handleTextChange,
-    resetForm
+    resetForm,
   } = useDynamicFormData();
 
   const handleAdd = async () => {
     // Implement functionality to add the record if needed
+    console.log('Add functionality needs to be implemented.');
   };
 
   return (
@@ -26,50 +27,73 @@ const DynamicForm: React.FC = () => {
       anchor="right"
       open={drawerOpen}
       onClose={handleDrawerToggle}
-      sx={{ width: 600, flexShrink: 0, '& .MuiDrawer-paper': { width: 600, boxSizing: 'border-box' } }}
+      sx={{
+        width: 600,
+        flexShrink: 0,
+        '& .MuiDrawer-paper': { width: 600, boxSizing: 'border-box' },
+      }}
     >
       <Box sx={{ padding: 2 }}>
-        {/* Order Code Dropdown */}
         <FormInput
           label="Order Code"
           value={selectedOrder}
           onChange={handleOrderChange}
-          options={orders.map(order => order.order_code)}
+          options={orders.map((order) => order.order_code)}
           isDropdown
         />
 
-        {/* Display selected order details */}
         {selectedOrder && (
           <Box mt={2}>
             <FormInput
               label="Order Name"
               value={selectedOrderValue?.order_name || ''}
-              onChange={() => { }} // Read-only, so no change handler needed
+              onChange={() => {}} // Read-only
               readOnly
             />
             <FormInput
               label="Order LOINC Code"
               value={selectedOrderValue?.order_loinc_code || ''}
-              onChange={() => { }} // Read-only, so no change handler needed
+              onChange={() => {}} // Read-only
               readOnly
             />
             <FormInput
               label="LOINC Name"
               value={selectedOrderValue?.loinc_name || ''}
-              onChange={() => { }} // Read-only, so no change handler needed
+              onChange={() => {}} // Read-only
               readOnly
             />
             <FormInput
               label="Order LOINC Description"
               value={selectedOrderValue?.order_loinc_description || ''}
-              onChange={() => { }} // Read-only, so no change handler needed
+              onChange={() => {}} // Read-only
               readOnly
             />
+            <FormInput
+  label="District"
+  value={textFields.district}
+  onChange={handleTextChange('district')}
+  options={dropdownData.districts}
+  isDropdown
+/>
+
+<FormInput
+  label="Test Location"
+  value={textFields.testLocation}
+  onChange={handleTextChange('testLocation')}
+  options={dropdownData.testLocations}
+  isDropdown
+/>
+
+<FormInput
+  label="Ordering Physician"
+  value={textFields.orderingPhysician}
+  onChange={handleTextChange('orderingPhysician')}
+  options={dropdownData.orderingPhysicians}
+  isDropdown
+/>
           </Box>
         )}
 
-        {/* Additional Dropdowns */}
-        {/* Specimen-related Dropdowns */}
         <FormInput
           label="Specimen Type"
           value={textFields.specimenType}
@@ -110,7 +134,6 @@ const DynamicForm: React.FC = () => {
           isDropdown
         />
 
-        {/* Text Fields for typing details */}
         <FormInput
           label="Patient First Name"
           value={textFields.patientFirstName}
@@ -167,41 +190,42 @@ const DynamicForm: React.FC = () => {
 
         <FormInput
           label="Race"
-          value={dropdownData.races[0] || ''}
+          value={textFields.race}
           onChange={handleTextChange('race')}
           options={dropdownData.races}
+          isDropdown
         />
 
         <FormInput
           label="Ethnicity"
-          value={dropdownData.ethnicities[0] || ''}
+          value={textFields.ethnicity}
           onChange={handleTextChange('ethnicity')}
           options={dropdownData.ethnicities}
+          isDropdown
         />
 
         <FormInput
-          label="Entry Number"
-          value={dropdownData.entryNumbers[0] || ''}
-          onChange={handleTextChange('entryNumber')}
-          options={dropdownData.entryNumbers}
+          label="Environment"
+          value={textFields.environment}
+          onChange={handleTextChange('environment')}
+          options={dropdownData.environments}
+          isDropdown
         />
 
         <FormInput
-          label="ENV"
-          value={dropdownData.envs[0] || ''}
-          onChange={handleTextChange('env')}
-          options={dropdownData.envs}
+          label="Gender"
+          value={textFields.gender}
+          onChange={handleTextChange('gender')}
+          options={dropdownData.genders}
+          isDropdown
         />
 
-        <FormInput
-          label="Extract Flag"
-          value={dropdownData.extractFlags[0] || ''}
-          onChange={handleTextChange('extractFlag')}
-          options={dropdownData.extractFlags}
-        />
-
-        <Button variant="contained" onClick={handleAdd}>Add</Button>
-        <Button variant="outlined" onClick={resetForm}>Discard</Button>
+        <Button variant="contained" onClick={handleAdd}>
+          Add
+        </Button>
+        <Button variant="outlined" onClick={resetForm}>
+          Discard
+        </Button>
       </Box>
     </Drawer>
   );

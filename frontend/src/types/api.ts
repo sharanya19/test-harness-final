@@ -1,7 +1,7 @@
 // types/api.ts
 
 export interface Order {
-  id: number; 
+  id: number;
   order_code: string;
   order_name: string;
   order_loinc_code: string;
@@ -51,33 +51,81 @@ export interface SourceSNOMEDCode {
   source_snomed_code: string;
 }
 
+export interface District {
+  id: number;
+  name: string;
+}
+
+export interface TestLocation {
+  id: number;
+  location_name: string;
+  district: District; // Full object reference
+}
+
+export interface OrderingPhysicianNPI {
+  id: number;
+  npi_code: string;
+  test_location: TestLocation; // Full object reference
+}
+
 export interface Submitter {
-  id: number; 
+  id: number;
   submitter_code: string;
-  district: string;
-  orderingphysiciannpi: string;
-  collectiondate: string; // ISO date string
-  collectiontime: string; // Time string in HH:MM:SS format
-  testlocation: string;
+  district: District; // Full object reference
+  test_location: TestLocation; // Full object reference
+  ordering_physician_npi: OrderingPhysicianNPI; // Full object reference
+  collection_date: string; // ISO date string
+  collection_time: string; // Time string in HH:MM:SS format
 }
 
 export interface Patient {
-  id: number; 
+  id: number;
   patient_first_name: string;
-  patient_middle_name?: string; 
+  patient_middle_name?: string;
   patient_last_name: string;
-  patient_gender: string;
-  dob: string; 
+  patient_gender: Gender;
+  dob: string; // ISO date string
   address_line1: string;
-  address_line2?: string; 
-  city: string;
-  state: string;
+  address_line2?: string;
+  city: City;
+  state: State;
   zip: string;
   email: string;
   phone_number: string;
-  race: string;
-  ethnicity: string;
+  race: Race;
+  ethnicity: Ethnicity;
   entry_number: string;
-  env: string;
+  env: Environment;
   extract_flag: boolean;
+}
+
+export interface City {
+  id: number;
+  name: string;
+}
+
+export interface State {
+  id: number;
+  name: string;
+  abbreviation: string;
+}
+
+export interface Race {
+  id: number;
+  name: string;
+}
+
+export interface Ethnicity {
+  id: number;
+  name: string;
+}
+
+export interface Environment {
+  id: number;
+  name: string;
+}
+
+export interface Gender {
+  id: number;
+  name: string;
 }

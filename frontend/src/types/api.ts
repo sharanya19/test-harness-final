@@ -68,14 +68,25 @@ export interface OrderingPhysicianNPI {
   test_location: TestLocation; // Full object reference
 }
 
+export interface CollectionDate {
+  id: number;
+  date: string; // ISO date string
+}
+
+// Interface for CollectionTime
+export interface CollectionTime {
+  id: number;
+  time: string; // Time string in HH:MM:SS format
+}
+
 export interface Submitter {
   id: number;
   submitter_code: string;
   district: District; // Full object reference
   test_location: TestLocation; // Full object reference
   ordering_physician_npi: OrderingPhysicianNPI; // Full object reference
-  collection_date: string; // ISO date string
-  collection_time: string; // Time string in HH:MM:SS format
+  collection_date: CollectionDate; // Full object reference
+  collection_time: CollectionTime; 
 }
 
 export interface Patient {

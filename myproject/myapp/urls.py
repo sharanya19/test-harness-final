@@ -18,7 +18,9 @@ from .views import (
     GenderViewSet,
     DistrictViewSet,
     OrderingPhysicianNPIViewSet,
-    TestLocationViewSet
+    TestLocationViewSet,
+    CollectionDateViewSet,
+    CollectionTimeViewSet
 )
 
 # Create a router and register viewsets
@@ -41,6 +43,8 @@ router.register(r'races', RaceViewSet)
 router.register(r'ethnicities', EthnicityViewSet)
 router.register(r'environments', EnvironmentViewSet)
 router.register(r'genders', GenderViewSet)
+router.register(r'collection-dates', CollectionDateViewSet)
+router.register(r'collection-times', CollectionTimeViewSet)
 
 urlpatterns = [
     path('', include(router.urls)),

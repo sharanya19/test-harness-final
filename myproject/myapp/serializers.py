@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import (
-    Order, Specimen, Submitter, Patient, 
+    Order, Specimen, Submitter, Patient, CollectionTime,CollectionDate,
     SpecimenType, SpecimenTypeSNOMEDCode, SourceDescription, SpecimenSource, SourceSNOMEDCode, City, State, Race, Ethnicity, Environment, Gender, OrderingPhysicianNPI, District, TestLocation
 )
 
@@ -80,15 +80,52 @@ class OrderingPhysicianNPISerializer(serializers.ModelSerializer):
         model = OrderingPhysicianNPI
         fields = '__all__'
 
+
+class CollectionDateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CollectionDate
+        fields = '__all__'
+
+class CollectionTimeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CollectionTime
+        fields = '__all__'
+
 class SubmitterSerializer(serializers.ModelSerializer):
-    district = DistrictSerializer(read_only=True)  # Nested serialization
-    test_location = TestLocationSerializer(read_only=True)  # Nested serialization
-    ordering_physician_npi = OrderingPhysicianNPISerializer(read_only=True)  # Nested serialization
+    district = DistrictSerializer()
+    test_location = TestLocationSerializer()
+    ordering_physician_npi = OrderingPhysicianNPISerializer()
+    collection_date = CollectionDateSerializer()
+    collection_time = CollectionTimeSerializer()
 
     class Meta:
         model = Submitter
         fields = '__all__'
 
+    def create(self, validated_data):
+        district_data = validated_data.pop('district')
+        test_location_data = validated_data.pop('test_location')
+        ordering_physician_npi_data = validated_data.pop('ordering_physician_npi')
+        collection_date_data = validated_data.pop('collection_date')
+        collection_time_data = validated_data.pop('collection_time')
+
+        district = District.objects.create(**district_data)
+        test_location = TestLocation.objects.create(**test_location_data)
+        ordering_physician_npi = OrderingPhysicianNPI.objects.create(**ordering_physician_npi_data)
+        collection_date = CollectionDate.objects.create(**collection_date_data)
+        collection_time = CollectionTime.objects.create(**collection_time_data)
+
+        submitter = Submitter.objects.create(
+            district=district,
+            test_location=test_location,
+            ordering_physician_npi=ordering_physician_npi,
+            collection_date=collection_date,
+            collection_time=collection_time,
+            **validated_data
+        )
+
+        return submitter
+    
 class CitySerializer(serializers.ModelSerializer):
     class Meta:
         model = City

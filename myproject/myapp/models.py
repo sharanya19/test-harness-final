@@ -79,6 +79,12 @@ class OrderingPhysicianNPI(models.Model):
 
     def __str__(self):
         return self.npi_code
+    
+class CollectionDate(models.Model):
+    date = models.DateField(unique=True)
+
+class CollectionTime(models.Model):
+    time = models.TimeField(unique=True)    
 
 # Define the Submitter model
 class Submitter(models.Model):

@@ -1,127 +1,151 @@
-# myapp/management/commands/add_dummy_data.py
-
 from django.core.management.base import BaseCommand
 from faker import Faker
+from myapp.models import (
+    Order, SpecimenType, SpecimenTypeSNOMEDCode, SourceDescription,
+    SpecimenSource, SourceSNOMEDCode, Specimen, District, TestLocation,
+    OrderingPhysicianNPI, CollectionDate, CollectionTime, Submitter,
+    Gender, City, State, Race, Ethnicity, Environment, Patient
+)
 import random
 
 class Command(BaseCommand):
-    help = 'Populate the database with dummy data'
+    help = 'Generate dummy data for the database'
 
     def handle(self, *args, **kwargs):
-        from myapp.models import (
-            District, TestLocation, OrderingPhysicianNPI, Submitter, Gender, City, 
-            State, Race, Ethnicity, Environment, Patient, Order, SpecimenType, 
-            SpecimenTypeSNOMEDCode, SourceDescription, SpecimenSource, SourceSNOMEDCode, Specimen
-        )
-
         fake = Faker()
 
-        def add_districts():
-            districts = []
-            for _ in range(10):
-                district = District.objects.create(name=fake.city())
-                districts.append(district)
-            return districts
+        def add_orders():
+            unique_order_codes = [fake.unique.word() for _ in range(10)]
+            self.stdout.write(self.style.SUCCESS('Generating Orders...'))
+            for code in unique_order_codes:
+                Order.objects.create(
+                    order_code=code,
+                    order_name=fake.word(),
+                    order_loinc_code=fake.word(),
+                    loinc_name=fake.word(),
+                    order_loinc_description=fake.text()
+                )
 
-        def add_test_locations(districts):
-            test_locations = []
+        def add_specimen_types():
+            unique_specimen_type_codes = [fake.unique.word() for _ in range(10)]
+            self.stdout.write(self.style.SUCCESS('Generating Specimen Types...'))
+            orders = Order.objects.all()
+            for order in orders:
+                for code in unique_specimen_type_codes:
+                    SpecimenType.objects.create(
+                        order=order,
+                        specimen_type=code
+                    )
+
+        def add_specimen_type_snomed_codes():
+            unique_snomed_codes = [fake.unique.word() for _ in range(10)]
+            self.stdout.write(self.style.SUCCESS('Generating Specimen Type SNOMED Codes...'))
+            specimen_types = SpecimenType.objects.all()
+            for specimen_type in specimen_types:
+                for code in unique_snomed_codes:
+                    SpecimenTypeSNOMEDCode.objects.create(
+                        specimen_type=specimen_type,
+                        specimen_type_snomed_code=code
+                    )
+
+        def add_source_descriptions():
+            self.stdout.write(self.style.SUCCESS('Generating Source Descriptions...'))
+            snomed_codes = SpecimenTypeSNOMEDCode.objects.all()
+            for snomed_code in snomed_codes:
+                for _ in range(2):
+                    SourceDescription.objects.create(
+                        specimen_type_snomed_code=snomed_code,
+                        source_description=fake.text()
+                    )
+
+        def add_specimen_sources():
+            self.stdout.write(self.style.SUCCESS('Generating Specimen Sources...'))
+            source_descriptions = SourceDescription.objects.all()
+            for source_description in source_descriptions:
+                for _ in range(2):
+                    SpecimenSource.objects.create(
+                        source_description=source_description,
+                        specimen_source=fake.word()
+                    )
+
+        def add_source_snomed_codes():
+            self.stdout.write(self.style.SUCCESS('Generating Source SNOMED Codes...'))
+            unique_snomed_codes = [fake.unique.word() for _ in range(10)]
+            specimen_sources = SpecimenSource.objects.all()
+            for specimen_source in specimen_sources:
+                for code in unique_snomed_codes:
+                    SourceSNOMEDCode.objects.create(
+                        specimen_source=specimen_source,
+                        source_snomed_code=code
+                    )
+
+        def add_specimens():
+            self.stdout.write(self.style.SUCCESS('Generating Specimens...'))
+            for _ in range(10):
+                Specimen.objects.create(
+                    order=fake.random.choice(Order.objects.all()),
+                    specimen_type=fake.random.choice(SpecimenType.objects.all()),
+                    specimen_type_snomed_code=fake.random.choice(SpecimenTypeSNOMEDCode.objects.all()),
+                    source_description=fake.random.choice(SourceDescription.objects.all()),
+                    specimen_source=fake.random.choice(SpecimenSource.objects.all()),
+                    source_snomed_code=fake.random.choice(SourceSNOMEDCode.objects.all())
+                )
+
+        def add_districts():
+            self.stdout.write(self.style.SUCCESS('Generating Districts...'))
+            for _ in range(5):
+                District.objects.create(
+                    name=fake.word()
+                )
+
+        def add_test_locations():
+            self.stdout.write(self.style.SUCCESS('Generating Test Locations...'))
+            districts = District.objects.all()
             for district in districts:
-                for _ in range(5):
-                    test_location = TestLocation.objects.create(
-                        location_name=fake.company(),
+                for _ in range(2):
+                    TestLocation.objects.create(
+                        location_name=fake.word(),
                         district=district
                     )
-                    test_locations.append(test_location)
-            return test_locations
 
-        def add_ordering_physicians(test_locations):
-            physicians = []
-            for location in test_locations:
-                for _ in range(3):
-                    physician = OrderingPhysicianNPI.objects.create(
-                        npi_code=fake.unique.bothify(text='????-########'),
-                        test_location=location
+        def add_ordering_physicians():
+            self.stdout.write(self.style.SUCCESS('Generating Ordering Physicians...'))
+            test_locations = TestLocation.objects.all()
+            for test_location in test_locations:
+                for _ in range(2):
+                    OrderingPhysicianNPI.objects.create(
+                        npi_code=fake.unique.numerify(text='NPI#####'),
+                        test_location=test_location
                     )
-                    physicians.append(physician)
-            return physicians
 
-        def add_submitters(districts, test_locations, physicians):
-            for _ in range(50):
+        def add_collection_dates():
+            self.stdout.write(self.style.SUCCESS('Generating Collection Dates...'))
+            for _ in range(10):
+                CollectionDate.objects.create(
+                    date=fake.date()
+                )
+
+        def add_collection_times():
+            self.stdout.write(self.style.SUCCESS('Generating Collection Times...'))
+            for _ in range(10):
+                CollectionTime.objects.create(
+                    time=fake.time()
+                )
+
+        def add_submitters():
+            self.stdout.write(self.style.SUCCESS('Generating Submitters...'))
+            for _ in range(10):
                 Submitter.objects.create(
-                    submitter_code=fake.unique.bothify(text='SUB-######'),
-                    district=random.choice(districts),
-                    test_location=random.choice(test_locations),
-                    ordering_physician_npi=random.choice(physicians),
-                    collection_date=fake.date_this_year(),
+                    submitter_code=fake.unique.word(),
+                    district=fake.random.choice(District.objects.all()),
+                    test_location=fake.random.choice(TestLocation.objects.all()),
+                    ordering_physician_npi=fake.random.choice(OrderingPhysicianNPI.objects.all()),
+                    collection_date=fake.date(),
                     collection_time=fake.time()
                 )
 
-        def add_orders():
-            orders = []
-            for _ in range(10):
-                order = Order.objects.create(
-                    order_code=fake.unique.bothify(text='ORD-######'),
-                    order_name=fake.sentence(),
-                    order_loinc_code=fake.unique.bothify(text='LOINC-######'),
-                    loinc_name=fake.sentence(),
-                    order_loinc_description=fake.paragraph()
-                )
-                orders.append(order)
-            return orders
-
-        def add_specimen_types(orders):
-            specimen_types = []
-            for order in orders:
-                for _ in range(3):
-                    specimen_type = SpecimenType.objects.create(
-                        order=order,
-                        specimen_type=fake.word()
-                    )
-                    specimen_types.append(specimen_type)
-            return specimen_types
-
-        def add_snomed_codes(specimen_types):
-            snomed_codes = []
-            for specimen_type in specimen_types:
-                for _ in range(2):
-                    snomed_code = SpecimenTypeSNOMEDCode.objects.create(
-                        specimen_type=specimen_type,
-                        specimen_type_snomed_code=fake.unique.bothify(text='SNOMED-######')
-                    )
-                    snomed_codes.append(snomed_code)
-            return snomed_codes
-
-        def add_source_descriptions(snomed_codes):
-            descriptions = []
-            for code in snomed_codes:
-                description = SourceDescription.objects.create(
-                    specimen_type_snomed_code=code,
-                    source_description=fake.text()
-                )
-                descriptions.append(description)
-            return descriptions
-
-        def add_specimen_sources(descriptions):
-            sources = []
-            for description in descriptions:
-                source = SpecimenSource.objects.create(
-                    source_description=description,
-                    specimen_source=fake.word()
-                )
-                sources.append(source)
-            return sources
-
-        def add_source_snomed_codes(sources):
-            snomed_codes = []
-            for source in sources:
-                snomed_code = SourceSNOMEDCode.objects.create(
-                    specimen_source=source,
-                    source_snomed_code=fake.unique.bothify(text='SRC-SNOMED-######')
-                )
-                snomed_codes.append(snomed_code)
-            return snomed_codes
-
         def add_patients():
+            self.stdout.write(self.style.SUCCESS('Generating Patients...'))
             genders = [Gender.objects.create(name=g) for g in ["Male", "Female", "Other"]]
             cities = [City.objects.create(name=fake.city()) for _ in range(5)]
             states = [State.objects.create(name=fake.state()) for _ in range(5)]
@@ -150,31 +174,18 @@ class Command(BaseCommand):
                     extract_flag=fake.boolean()
                 )
 
-        def add_specimens(orders, specimen_types, snomed_codes, descriptions, sources, source_snomed_codes):
-            for _ in range(50):
-                Specimen.objects.create(
-                    order=random.choice(orders),
-                    specimen_type=random.choice(specimen_types),
-                    specimen_type_snomed_code=random.choice(snomed_codes),
-                    source_description=random.choice(descriptions),
-                    specimen_source=random.choice(sources),
-                    source_snomed_code=random.choice(source_snomed_codes)
-                )
-
-        # Populate the database
-        districts = add_districts()
-        test_locations = add_test_locations(districts)
-        physicians = add_ordering_physicians(test_locations)
-        add_submitters(districts, test_locations, physicians)
-
-        orders = add_orders()
-        specimen_types = add_specimen_types(orders)
-        snomed_codes = add_snomed_codes(specimen_types)
-        descriptions = add_source_descriptions(snomed_codes)
-        sources = add_specimen_sources(descriptions)
-        source_snomed_codes = add_source_snomed_codes(sources)
-
+        # Run all data generation functions
+        add_orders()
+        add_specimen_types()
+        add_specimen_type_snomed_codes()
+        add_source_descriptions()
+        add_specimen_sources()
+        add_source_snomed_codes()
+        add_specimens()
+        add_districts()
+        add_test_locations()
+        add_ordering_physicians()
+        add_collection_dates()
+        add_collection_times()
+        add_submitters()
         add_patients()
-        add_specimens(orders, specimen_types, snomed_codes, descriptions, sources, source_snomed_codes)
-
-        self.stdout.write(self.style.SUCCESS('Dummy data added successfully!'))

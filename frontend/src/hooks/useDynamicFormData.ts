@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import api from '../utils/axios';
-import { Order, Specimen, SpecimenSource, SpecimenType, SourceDescription, SourceSNOMEDCode, SpecimenTypeSNOMEDCode, City, State, Race, Ethnicity, Environment, Gender, District, TestLocation, OrderingPhysicianNPI, Submitter } from '../types/api';
+import { Order, Specimen, SpecimenSource, SpecimenType, SourceDescription, SourceSNOMEDCode, SpecimenTypeSNOMEDCode, City, State, Race, Ethnicity, Environment, Gender, District, TestLocation, OrderingPhysicianNPI, Submitter, CollectionDate, CollectionTime } from '../types/api';
 import { API_PATH } from '../utils/appRoutes';
 import { SelectChangeEvent } from '@mui/material';
 
@@ -20,6 +20,8 @@ type DropdownData = {
   districts: string[];
   testLocations: string[];
   orderingPhysicians: string[];
+  collectionDates: string[];  // New
+  collectionTimes: string[];  // New
 };
 
 // Initial dropdown data structure
@@ -37,7 +39,9 @@ const initialDropdownData: DropdownData = {
   genders: [],
   districts: [],
   testLocations: [],
-  orderingPhysicians: []
+  orderingPhysicians: [],
+  collectionDates: [],  // New
+  collectionTimes: []   // New
 };
 
 // Full data structures to maintain state for objects
@@ -56,6 +60,8 @@ type FullData = {
   districts: District[];
   testLocations: TestLocation[];
   orderingPhysicians: OrderingPhysicianNPI[];
+  collectionDates: CollectionDate[];  // New
+  collectionTimes: CollectionTime[];  // New
 };
 
 // Initial full data structure
@@ -73,7 +79,9 @@ const initialFullData: FullData = {
   genders: [],
   districts: [],
   testLocations: [],
-  orderingPhysicians: []
+  orderingPhysicians: [],
+  collectionDates: [],  // New
+  collectionTimes: []   // New
 };
 
 export const useDynamicFormData = () => {
@@ -106,7 +114,9 @@ export const useDynamicFormData = () => {
     gender: '',
     district: '',
     testLocation: '',
-    orderingPhysician: ''
+    orderingPhysician: '',
+    collectionDate: '',  // New
+    collectionTime: ''   // New
   });
 
   const selectedOrderValue = orders.find(o => o.order_code === selectedOrder);
@@ -168,7 +178,9 @@ export const useDynamicFormData = () => {
           genders,
           districts,
           testLocations,
-          orderingPhysicians
+          orderingPhysicians,
+          collectionDates,
+          collectionTimes
         ] = await Promise.all([
           api.get<SpecimenType[]>(API_PATH.SPECIMEN_TYPES).then(res => res.data),
           api.get<City[]>(API_PATH.CITIES).then(res => res.data),
@@ -179,7 +191,9 @@ export const useDynamicFormData = () => {
           api.get<Gender[]>(API_PATH.GENDERS).then(res => res.data),
           api.get<District[]>(API_PATH.DISTRICTS).then(res => res.data),
           api.get<TestLocation[]>(API_PATH.TEST_LOCATIONS).then(res => res.data),
-          api.get<OrderingPhysicianNPI[]>(API_PATH.ORDERING_PHYSICIANS).then(res => res.data)
+          api.get<OrderingPhysicianNPI[]>(API_PATH.ORDERING_PHYSICIANS).then(res => res.data),
+          api.get<CollectionDate[]>(API_PATH.COLLECTION_DATES).then(res => res.data),
+          api.get<CollectionTime[]>(API_PATH.COLLECTION_TIMES).then(res => res.data)
         ]);
 
         setFullData(prevData => ({
@@ -193,7 +207,9 @@ export const useDynamicFormData = () => {
           genders,
           districts,
           testLocations,
-          orderingPhysicians
+          orderingPhysicians,
+          collectionDates,
+          collectionTimes
         }));
 
         setDropdownData(prevData => ({
@@ -207,7 +223,9 @@ export const useDynamicFormData = () => {
           genders: genders.map(g => g.name),
           districts: districts.map(d => d.name),
           testLocations: testLocations.map(t => t.location_name),
-          orderingPhysicians: orderingPhysicians.map(o => o.npi_code)
+          orderingPhysicians: orderingPhysicians.map(o => o.npi_code),
+          collectionDates: collectionDates.map(c => c.date),
+          collectionTimes: collectionTimes.map(t => t.time)
         }));
       } catch (error) {
         console.error("Error loading dropdown data:", error);
@@ -260,18 +278,22 @@ export const useDynamicFormData = () => {
       gender: '',
       district: '',
       testLocation: '',
-      orderingPhysician: ''
+      orderingPhysician: '',
+      collectionDate: '',  // New
+      collectionTime: ''   // New
     });
+    setDropdownData(initialDropdownData);
+    setFullData(initialFullData);
   };
 
   return {
     orders,
     selectedOrder,
-    selectedOrderValue,
     drawerOpen,
     dropdownData,
     fullData,
     textFields,
+    selectedOrderValue,
     handleDrawerToggle,
     handleOrderChange,
     handleTextChange,

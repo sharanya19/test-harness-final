@@ -31,6 +31,9 @@ const API_PATH = {
     DISTRICTS: `${BASE_URL}api/districts/`,
     TEST_LOCATIONS: `${BASE_URL}api/test-locations/`,
     ORDERING_PHYSICIANS: `${BASE_URL}api/ordering-physicians/`,
+    COLLECTION_DATES: `${BASE_URL}api/collection-dates/`,
+    COLLECTION_TIMES: `${BASE_URL}api/collection-times/`,
+
 };
 
 export {

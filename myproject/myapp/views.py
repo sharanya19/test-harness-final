@@ -5,10 +5,10 @@ from .models import (Order, Specimen, SpecimenType, Submitter, Patient,
     SpecimenTypeSNOMEDCode, 
     SourceDescription, 
     SpecimenSource, 
-    SourceSNOMEDCode, Gender, City, State, Race, Ethnicity, Environment, District, OrderingPhysicianNPI, TestLocation)
+    SourceSNOMEDCode, Gender, City, State, Race, Ethnicity, Environment, District, OrderingPhysicianNPI, TestLocation, CollectionDate, CollectionTime)
 from .serializers import (OrderSerializer, SpecimenSerializer, SpecimenTypeSerializer, SubmitterSerializer, PatientSerializer, SpecimenTypeSerializer, SpecimenTypeSNOMEDCodeSerializer, OrderingPhysicianNPISerializer, DistrictSerializer, TestLocationSerializer,
     SourceDescriptionSerializer, 
-    SpecimenSourceSerializer, 
+    SpecimenSourceSerializer, CollectionDateSerializer, CollectionTimeSerializer,
     SourceSNOMEDCodeSerializer,GenderSerializer, CitySerializer, StateSerializer, RaceSerializer, EthnicitySerializer, EnvironmentSerializer )
 
 class OrderViewSet(viewsets.ModelViewSet):
@@ -255,6 +255,16 @@ class OrderingPhysicianNPIViewSet(viewsets.ModelViewSet):
     queryset = OrderingPhysicianNPI.objects.all()
     serializer_class = OrderingPhysicianNPISerializer
     permission_classes = [IsAuthenticated]
+
+class CollectionDateViewSet(viewsets.ModelViewSet):
+    queryset = CollectionDate.objects.all()
+    serializer_class = CollectionDateSerializer
+    permission_classes = [IsAuthenticated]
+
+class CollectionTimeViewSet(viewsets.ModelViewSet):
+    queryset = CollectionTime.objects.all()
+    serializer_class = CollectionTimeSerializer 
+    permission_classes = [IsAuthenticated]   
 
 class SubmitterViewSet(viewsets.ModelViewSet):
     queryset = Submitter.objects.all()

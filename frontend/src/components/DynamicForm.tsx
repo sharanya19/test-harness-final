@@ -69,28 +69,28 @@ const DynamicForm: React.FC = () => {
               readOnly
             />
             <FormInput
-  label="District"
-  value={textFields.district}
-  onChange={handleTextChange('district')}
-  options={dropdownData.districts}
-  isDropdown
-/>
+              label="District"
+              value={textFields.district}
+              onChange={handleTextChange('district')}
+              options={dropdownData.districts}
+              isDropdown
+            />
 
-<FormInput
-  label="Test Location"
-  value={textFields.testLocation}
-  onChange={handleTextChange('testLocation')}
-  options={dropdownData.testLocations}
-  isDropdown
-/>
+            <FormInput
+              label="Test Location"
+              value={textFields.testLocation}
+              onChange={handleTextChange('testLocation')}
+              options={dropdownData.testLocations}
+              isDropdown
+            />
 
-<FormInput
-  label="Ordering Physician"
-  value={textFields.orderingPhysician}
-  onChange={handleTextChange('orderingPhysician')}
-  options={dropdownData.orderingPhysicians}
-  isDropdown
-/>
+            <FormInput
+              label="Ordering Physician"
+              value={textFields.orderingPhysician}
+              onChange={handleTextChange('orderingPhysician')}
+              options={dropdownData.orderingPhysicians}
+              isDropdown
+            />
           </Box>
         )}
 
@@ -218,6 +218,22 @@ const DynamicForm: React.FC = () => {
           onChange={handleTextChange('gender')}
           options={dropdownData.genders}
           isDropdown
+        />
+
+        <FormInput
+          label="Collection Date"  // New
+          value={textFields.collectionDate}  // New
+          onChange={handleTextChange('collectionDate')}  // New
+          options={dropdownData.collectionDates}  // New
+          isDropdown  // New
+        />
+
+        <FormInput
+          label="Collection Time"  // New
+          value={textFields.collectionTime}  // New
+          onChange={handleTextChange('collectionTime')}  // New
+          options={dropdownData.collectionTimes}  // New
+          isDropdown  // New
         />
 
         <Button variant="contained" onClick={handleAdd}>
